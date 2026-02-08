@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>單程票 (CST) 處理指引 v6</title>
+    <style>
+        body { font-family: -apple-system, "Helvetica Neue", sans-serif; line-height: 1.6; background-color: #f0f2f5; color: #333; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #1a5276; border-bottom: 3px solid #3498db; padding-bottom: 10px; text-align: center; margin-top: 0; }
+        .section-title { font-weight: bold; margin-top: 25px; color: #d35400; display: flex; align-items: center; font-size: 1.1em; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        button { background: #fff; border: 1px solid #ced4da; padding: 10px 8px; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 13.5px; text-align: left; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        button:hover { background: #e8f4fd; border-color: #3498db; transform: translateY(-1px); }
+        #display-area { margin-top: 20px; padding: 18px; background: #fff; border: 2px solid #3498db; border-radius: 8px; display: none; animation: fadeIn 0.3s; }
+        .highlight { color: #c0392b; font-weight: bold; background: #fdf2f2; padding: 2px 4px; border-radius: 3px; }
+        .step-key { color: #27ae60; font-weight: bold; }
+        .check-point { color: #8e44ad; font-weight: bold; } /* 用於查核步驟 */
+        .info-tag { font-weight: bold; color: #2980b9; margin-right: 5px; min-width: 70px; display: inline-block; }
+        .info-row { margin-bottom: 8px; font-size: 0.95em; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        ul { padding-left: 20px; margin: 5px 0; }
+        li { margin-bottom: 8px; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🎫 單程票異常處理指引</h2>
+    
+    <div class="section-title">🔍 快速查詢情境</div>
+    <div class="grid">
+        <button onclick="show('buy-error')">❌ 購票錯誤 / 誤購高價</button>
+        <button onclick="show('overtime')">📍 逾時補票 / 補繳車資單</button>
+        <button onclick="show('refund')">🔄 退票作業 / 改定期票</button>
+        <button onclick="show('wrong-drop-all')">📥 CST 誤投出站</button>
+        <button onclick="show('wrong-exit')">🚪 CST 出錯站 (5min內)</button>
+        <button onclick="show('code-nonpaid')">⚠️ 進出不符 (非付費區)</button>
+        <button onclick="show('code-paid')">⚠️ 進出不符 (付費區)</button>
+        <button onclick="show('lost')">📍 遺失票卡補票</button>
+        <button onclick="show('broken')">📍 票卡故障 (Checksum)</button>
+        <button onclick="show('elevator')">📍 電梯故障 / 過站不停</button>
+    </div>
+
+    <div id="display-area">
+        <h3 id="case-title" style="margin-top:0; color: #2c3e50;"></h3>
+        <div id="case-content"></div>
+    </div>
+
+    <hr style="margin-top:30px; border: 0; border-top: 1px dashed #ccc;">
+    
+    <div class="section-title">📋 基本規則摘要</div>
+    <div style="margin-top: 10px; padding: 15px; background: #fffdf0; border-radius: 8px; border: 1px solid #f9e79f;">
+        <div class="info-row"><span class="info-tag">優待 5折</span> 桃市55歲以上+原住民、敬老、愛心/陪</div>
+        <div class="info-row"><span class="info-tag">兒童 8折</span> 6-12歲本國籍</div>
+        <div class="info-row"><span class="info-tag">對外規則</span> 發售當日營運時間內有效 (無乘車可退)</div>
+        <div class="info-row"><span class="info-tag">逾時時限</span> 同站—15min、異站—2hr</div>
+        <div class="info-row"><span class="info-tag">逾時費用</span> 應付票價 + 手續費 (不打折)</div>
+    </div>
+</div>
+
+<script>
+    const data = {
+        'buy-error': {
+            title: '購票錯誤 / 誤購高價票處理',
+            content: '<ul><li><b>購票錯誤：</b>收回CST → <span class="step-key">帳管系統</span> 登錄支出資訊 → POST 重新發售。</li><li><b>出站前表示誤購高價：</b><ul><li>收回CST → POST 發售正確CST → <span class="step-key">帳管處理</span> (須記錄原CST內外碼)。</li><li><span class="step-key">優待票：</span>由帳管系統直接售出。</li></ul></li></ul>'
+        },
+        'overtime': {
+            title: '逾時補票 / 補繳車資單',
+            content: '<ul><li><b>一般補票：</b>使用 POST 補票(收原價+手續費)，優待票需於帳管登錄。</li><li><b>現金不足(補繳單)：</b><ul><li>1. <span class="step-key">POST操作：</span>選擇不按補票，列印並交付「旅客聯」。</li><li>2. <span class="step-key">帳管建檔：</span><span class="check-point">確認旅客身分</span>，並查核是否「尚有未繳車資單」。</li><li>3. 原CST投入<span class="highlight">循環</span>，告知旅客當日起10日內繳費。</li></ul></li><li><b>繳費處理：</b>收回車資單 → 登錄帳管 → <span class="step-key">開立繳費證明</span>。(註：可用儲值卡補繳)</li></ul>'
+        },
+        'refund': {
+            title: '退票作業 / 改票處理',
+            content: '<ul><li><b>未使用退票：</b><ul><li>210日內：使用 POST 退票。</li><li>210日外：由帳管系統處理。</li><li>優待票：帳管系統 → 社福票退票。</li></ul></li><li><b>改定期票/一日/回數票：</b><ul><li><span class="step-key">未投入AG：</span>出示CST與新票，POST補進出 → AG出站。(<span class="highlight">優待票須於帳管退費</span>)</li><li><span class="step-key">投入AG：</span>紀錄卡號內外碼(票卡不後送) → 寫票處單 → 10工作天內領退費通知。</li></ul></li></ul>'
+        },
+        'wrong-drop-all': {
+            title: 'CST 誤投出站處理',
+            content: '<ul><li><b>當站反映：</b><ul><li>無搭車：<span class="step-key">帳管</span> 退費。</li><li>要搭車：登帳管(紀錄投出時間及AG) → <span class="step-key">POST 重售CST</span> (須簽支出憑證)。</li></ul></li><li><b>非當站反映：</b>已搭車者填寫票處單，後送退費，並請旅客重新購票。</li></ul>'
+        },
+        'wrong-exit': {
+            title: 'CST 出錯站 (5分鐘內)',
+            content: '<ul><li>詢問原進出站/票價 → <span class="step-key">帳管 & POST</span> 重發/補原紀錄。</li><li>CST 交給旅客，開啟公務門引導進站。</li></ul>'
+        },
+        'code-nonpaid': {
+            title: '進出碼不符 (非付費區)',
+            content: '<ul><li><b>當日當站 5 分鐘內：</b>使用 <span class="step-key">POST 免費改出站</span>。</li><li><b>非當日當站：</b><ul><li>無服務中斷：<span class="highlight">重新購票</span>，原票回收列入循環CST。</li><li>有緊急/服務中斷模式：POST 免費改出站或退票(回收CST)。</li></ul></li></ul>'
+        },
+        'code-paid': {
+            title: '進出碼不符 (付費區)',
+            content: '<ul><li>使用 <span class="step-key">POST 補進站(補票)</span>。</li></ul>'
+        },
+        'lost': {
+            title: '遺失票卡處理',
+            content: '<ul><li><b>未補票：</b>視為無票乘車。</li><li><b>自動補票：</b><ul><li>全票：POST「付費出站CST」，收車資 + <span class="highlight">工本費$50</span>。</li><li>優待票：重新發售並於帳管系統勾選工本費。</li></ul></li><li><b>退費：</b>須帶回原CST+繳費證明，於帳管辦理。</li></ul>'
+        },
+        'broken': {
+            title: '票卡故障 (Checksum Error)',
+            content: '<ul><li><span class="step-key">非付費區：</span>帳管系統登錄，重新販售CST。</li><li><span class="step-key">付費區：</span>使用 POST 發行<span class="highlight">「免費出站CST」</span>。</li></ul>'
+        },
+        'elevator': {
+            title: '電梯故障、過站不停處理',
+            content: '<ul><li>回收原CST，開公務門，發放<span class="highlight">「免費出站CST」</span>。</li><li>回收票須於 <span class="step-key">帳管 Key 列入循環CST</span>，並填寫交接班記錄表。</li></ul>'
+        }
+    };
+
+    function show(key) {
+        const area = document.getElementById('display-area');
+        const title = document.getElementById('case-title');
+        const content = document.getElementById('case-content');
+        
+        title.innerText = data[key].title;
+        content.innerHTML = data[key].content;
+        area.style.display = 'block';
+        window.scrollTo({ top: area.offsetTop, behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
