@@ -3,109 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>單程票 (CST) 處理指引 v7 - 整合版</title>
+    <title>單程票異常處理指引</title>
     <style>
-        body { font-family: -apple-system, "Helvetica Neue", sans-serif; line-height: 1.6; background-color: #f0f2f5; color: #333; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h2 { color: #1a5276; border-bottom: 3px solid #3498db; padding-bottom: 10px; text-align: center; margin-top: 0; }
-        .section-title { font-weight: bold; margin-top: 25px; color: #d35400; display: flex; align-items: center; font-size: 1.1em; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        button { background: #fff; border: 1px solid #ced4da; padding: 12px 8px; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 14px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-weight: 500; }
-        button:hover { background: #e8f4fd; border-color: #3498db; transform: translateY(-1px); }
-        #display-area { margin-top: 20px; padding: 18px; background: #fff; border: 2px solid #3498db; border-radius: 8px; display: none; animation: fadeIn 0.3s; }
+        body { font-family: -apple-system, sans-serif; line-height: 1.6; background-color: #f0f2f5; color: #333; padding: 15px; }
+        .container { max-width: 850px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
+        .token-icon {
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            background-color: #663399;
+            border-radius: 50%;
+            vertical-align: middle;
+            margin-right: 10px;
+            box-shadow: inset 0 0 5px rgba(255,255,255,0.4);
+            border: 2px solid #51267d;
+        }
+
+        h2 { color: #1a5276; border-bottom: 3px solid #663399; padding-bottom: 10px; text-align: center; margin-top: 0; }
+        .section-title { font-weight: bold; margin-top: 20px; color: #d35400; display: flex; align-items: center; font-size: 1.1em; border-left: 5px solid #d35400; padding-left: 10px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        
+        button { background: #fff; border: 1px solid #ced4da; padding: 10px 5px; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 13.5px; text-align: left; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        button:hover { background: #e8f4fd; border-color: #663399; transform: translateY(-1px); }
+        
+        #display-area { margin-top: 20px; padding: 18px; background: #fff; border: 2.5px solid #663399; border-radius: 8px; display: none; animation: fadeIn 0.3s; }
         .highlight { color: #c0392b; font-weight: bold; background: #fdf2f2; padding: 2px 4px; border-radius: 3px; }
         .step-key { color: #27ae60; font-weight: bold; }
-        .check-point { color: #8e44ad; font-weight: bold; }
-        .special-tag { background: #663399; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; margin-right: 5px; }
-        .info-tag { font-weight: bold; color: #2980b9; margin-right: 5px; min-width: 80px; display: inline-block; }
+        .special-tag { background: #663399; color: white; padding: 2px 5px; border-radius: 4px; font-size: 0.8em; margin-right: 5px; }
+        .sub-item { color: #2980b9; font-weight: bold; display: block; margin-top: 10px; border-left: 3px solid #2980b9; padding-left: 8px; }
+        
         .info-row { margin-bottom: 8px; font-size: 0.95em; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        
         ul { padding-left: 20px; margin: 5px 0; }
-        li { margin-bottom: 10px; }
+        li { margin-bottom: 8px; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>🎫 單程票異常處理指引 </h2>
+    <h2><span class="token-icon"></span>單程票異常處理指引</h2>
     
-    <div class="section-title">🔍 選擇異常情境 (全票/優待票整合)</div>
+    <div class="section-title">🔍 快速查詢情境</div>
     <div class="grid">
-        <button onclick="show('buy-error')">❌ 購票錯誤 / 誤購票種</button>
-        <button onclick="show('overtime')">📍 逾時補票 / 補繳單</button>
-        <button onclick="show('refund')">🔄 退票作業 / 改定期票</button>
-        <button onclick="show('lost')">📍 遺失票卡 / 補票</button>
-        <button onclick="show('wrong-drop-all')">📥 CST 誤投出站</button>
-        <button onclick="show('wrong-exit')">🚪 CST 出錯站 (5min)</button>
-        <button onclick="show('broken')">📍 票卡故障 / 毀損</button>
-        <button onclick="show('elevator')">📍 電梯故障 / 過站</button>
+        <button onclick="show('1')">📍 補票 (逾時 / 逾站)</button>
+        <button onclick="show('2')">📍 遺失 / 找回票卡</button>
+        <button onclick="show('3')">🔄 付費出站CST退費</button>
+        <button onclick="show('4')">⚠️ 問題票 (無法讀/毀損)</button>
+        <button onclick="show('5')">⚠️ Checksum Error</button>
+        <button onclick="show('6')">🛗 電梯故障 / 過站不停</button>
+        <button onclick="show('7')">🚪 進出碼不符</button>
+        <button onclick="show('8')">🔄 退票作業</button>
+        <button onclick="show('9')">🎫 改票處理</button>
+        <button onclick="show('10')">❌ 購票錯誤 / 換購處理</button>
+        <button onclick="show('11')">📥 誤投 / 出錯站反映</button>
+        <button onclick="show('12')">📋 補繳單 / 繳費作業</button>
     </div>
 
     <div id="display-area">
-        <h3 id="case-title" style="margin-top:0; color: #2c3e50;"></h3>
+        <h3 id="case-title" style="margin-top:0; color: #663399;"></h3>
         <div id="case-content"></div>
     </div>
 
     <hr style="margin-top:30px; border: 0; border-top: 1px dashed #ccc;">
     
-    <div class="section-title">♿ 優待身分查驗標準</div>
+    <div class="section-title">📋 優待身分查驗摘要</div>
     <div style="margin-top: 10px; padding: 15px; background: #fffdf0; border-radius: 8px; border: 1px solid #f9e79f;">
-        <div class="info-row"><span class="info-tag">本國身障/老人</span> 身障手冊、身分證、桃市55+原住民證</div>
-        <div class="info-row"><span class="info-tag">日本籍身障</span> 持「日本國身障證明」且註明有大眾運輸優惠</div>
-        <div class="info-row"><span class="info-tag">馬偕計畫</span> 持居留證註記「外籍人士優待」者</div>
-        <div class="info-row"><span class="info-tag">愛心陪伴者</span> 須與身障者「緊隨」且「同時」進出站</div>
-        <div class="info-row"><span class="info-tag">兒童 8折</span> 6-12歲本國籍</div>
+        <div class="info-row"><b>本國身障/老人：</b>身障手冊、身分證、桃市55+原住民證</div>
+        <div class="info-row"><b>愛心陪伴者：</b>須有「國內大眾運輸工具」註記，且須緊隨進出</div>
+        <div class="info-row"><b>日本籍身障：</b>持「日本國身障證明」註明優惠者</div>
+        <div class="info-row"><b>馬偕計畫：</b>持居留證註記「外籍人士優待」者</div>
+        <div class="info-row"><b>兒童 8折：</b>6-12歲本國籍 (不強制登記證件)</div>
     </div>
 </div>
 
 <script>
     const data = {
-        'buy-error': {
-            title: '購票錯誤 / 誤購票種處理',
-            content: '<ul><li><b>一般處理：</b>收回CST → 帳管系統登錄支出 → POST重新發售。</li><li><span class="special-tag">優待票</span><b>誤購全票(已進站)：</b><ul><li>1. 收回全票，POST售正確優待票(補進站紀錄)。</li><li>2. 原全票由<span class="step-key">帳管辦理退費</span>。</li><li>3. <span class="highlight">重要：</span>須於「社福票系統」登記退票。</li></ul></li></ul>'
+        '1': {
+            title: '1. 補票 (逾時 / 逾站)',
+            content: '<ul><li><b>(1) 逾時：</b>收取手續費 <span class="highlight">$25</span> → POST 補票 → 旅客持原CST出站。</li><li><b>(2) 逾站：</b>收取差額 → POST 補票 → 旅客持原CST出站。</li></ul>'
         },
-        'overtime': {
-            title: '逾時補票 (同站15min / 異站2hr)',
-            content: '<ul><li><b>收費標準：</b>應付票價 + <span class="highlight">手續費 $20</span>。</li><li><span class="special-tag">注意</span> 逾時手續費不論票種皆按「最低全票單程票價」計收，不打折。</li><li><b>現金不足：</b>開立「補繳單」，發放免費出站CST，告知10日內繳費。</li></ul>'
+        '2': {
+            title: '2. 遺失 / 找回票卡',
+            content: '<span class="sub-item">遺失補票</span><ul><li><b>全票：</b>POST發售「付費出站CST」，收車資+<span class="highlight">工本費 $50</span>，開立繳費證明。</li><li><span class="special-tag">優待</span> 重新發售CST，帳管勾選工本費$50，開立繳費證明。</li></ul><span class="sub-item">找回票卡</span><ul><li>持原CST及繳費證明 → 帳管登支出 → <b>原CST註記憑證單號投票務</b>。</li></ul>'
         },
-        'refund': {
-            title: '退票作業 / 改票處理',
-            content: '<ul><li><b>未使用退票：</b>POST處理；若超過210日或<span class="special-tag">優待票</span>則由帳管系統處理。</li><li><b>改定期票(已投AG)：</b>不後送票卡，填寫「票卡處理作業單」，由票務後端查核退費。</li></ul>'
+        '3': {
+            title: '3. 付費出站CST退費 (出站前反映)',
+            content: '<ul><li>回收CST及繳費證明 → 帳管Key支出 → <b>CST註記憑證單號投票務</b>。</li></ul>'
         },
-        'lost': {
-            title: '遺失票卡 / 補票作業',
-            content: '<ul><li><b>全票：</b>POST發售「付費出站CST」，收車資 + <span class="highlight">工本費 $50</span>。</li><li><span class="special-tag">優待票</span>：<ul><li>1. <span class="check-point">查驗身分</span>(含日本籍、馬偕計畫)。</li><li>2. <span class="step-key">帳管系統</span>登錄並勾選「工本費 $50」。</li><li>3. POST操作「補進站紀錄」售票。</li></ul></li></ul>'
+        '4': {
+            title: '4. 問題票 (無法讀取 / 毀損)',
+            content: '<b>(1) 待售無法讀取：</b>直接投票務後送。<br><span class="sub-item">(2) CST 毀損 (人為損壞)</span><ul><li><b>非付費區：</b>回收CST投票務(可讀則POST退費) → 收<b>工本費 $50</b> → 登帳管、開證明 → 旅客重購。</li><li><b>付費區：</b>回收CST投票務 → 發售付費出站CST(原因選人為毀損) → 收<b>工本費 $50</b>(不收車資) → 開證明。</li></ul><span class="sub-item">(3) 外觀正常無法讀取</span><ul><li><b>非付費區：</b>回收CST(<b>註記單號投票務</b>) → 帳管登支出 → 重發售CST。</li><li><b>付費區：</b>回收CST → 發售免費出站CST。</li></ul>'
         },
-        'wrong-drop-all': {
-            title: 'CST 誤投出站反映',
-            content: '<ul><li><b>要搭車：</b>帳管登錄支出 → <span class="step-key">POST 重售CST</span> 並補進站紀錄。</li><li><b>無搭車：</b>帳管退費(<span class="special-tag">優待票</span>須登錄社福系統)。</li></ul>'
+        '5': {
+            title: '5. Checksum Error',
+            content: '<ul><li><b>非付費區：</b>回收CST(<b>註記單號投票務</b>) → 帳管登錄支出 → 重新發售。</li><li><b>付費區：</b>回收CST(投票務) → 發售「免出CST」。</li></ul>'
         },
-        'wrong-exit': {
-            title: 'CST 出錯站 (5分鐘內)',
-            content: '<ul><li><span class="step-key">程序：</span>回收原票 → 重發原票值CST → 補進站紀錄 → 公務門引導。</li></ul>'
+        '6': {
+            title: '6. 電梯故障 / 過站',
+            content: '回收CST(列循環) → 發免出CST或公務門出站。'
         },
-        'broken': {
-            title: '票卡故障 / 人為毀損',
-            content: '<ul><li><b>無法讀取：</b>公司負擔，回收原卡並發放「免費出站CST」。</li><li><b>人為毀損：</b>不論票種，皆收 <span class="highlight">工本費 $50</span>，優待票需於帳管勾選工本費。</li></ul>'
+        '7': {
+            title: '7. 進出碼不符',
+            content: '<span class="sub-item">非付費區</span><ul><li><b>5min內當站：</b>POST免費改出站。</li><li><b>非當日當站：</b>無緊急模式則重購、原卡列循環；有緊急模式則POST改出站或退票(回收CST)。</li></ul><span class="sub-item">付費區</span>POST補進站。'
         },
-        'elevator': {
-            title: '電梯故障 / 過站不停',
-            content: '<ul><li>回收原卡，發放「免費出站CST」，填寫交接班紀錄。</li></ul>'
+        '8': {
+            title: '8. 退票作業',
+            content: '未使用：POST退票(210日內)；帳管處理(210日外)，CST投票務。<br><span class="special-tag">優待</span> 帳管處理並至社福系統退票。'
+        },
+        '9': {
+            title: '9. 改票處理 (定期/一日票/回數票)',
+            content: '<ul><li><b>(1) 未投入AG：</b>CST退票 → 票卡補進站 → AG出站。<span class="special-tag">優待</span> 須於帳管退費。</li><li><b>(2) 投入AG：</b>留卡號內外碼(不後送票卡) → 寫票處單(<b>不受理TPASS，僅受理桃捷票證</b>) → 10個工作天內寄退費通知。</li></ul>'
+        },
+        '10': {
+            title: '10. 購票錯誤 / 換購處理',
+            content: '<ul><li><b>當站反映：</b>收回CST(<b>註記單號投票務</b>) → 帳管登錄支出 → 重發CST。</li><li><b>出站後反映誤購高價：</b>收回CST(<b>註記單號投票務</b>) → 售付費出站CST → 帳管Key內外碼。</li><li><span class="special-tag">優待</span> 收回CST(註記單號) → 社福退票 → 重售CST(PO補進站) → 帳管Key內外碼。</li></ul>'
+        },
+        '11': {
+            title: '11. CST誤投 / 出錯站反映',
+            content: '<span class="sub-item">誤投出站</span><ul><li><b>當站反映：</b><br>1. 要搭車：登帳管(記投出時間/AG)、PO重售CST(簽支出單)。<br>2. 取消搭車：登帳管退費(簽支出單)。<span class="special-tag">優待</span>至社福登記。</li><li><b>非當站反映：</b>已搭車則寫票處單後送，重新購票；堅持現場退則登帳管並售付費出站CST。</li></ul><span class="sub-item">出錯站 (5min內)</span>問原定進出站/票價 → 帳管&重售CST(補原紀錄) → 交票給旅客、公務門進站。'
+        },
+        '12': {
+            title: '12. 補繳單 / 繳費作業',
+            content: '<b>開立：</b>POST不按補票 → 開補繳單(旅客聯) → 發免出CST → 帳管建檔 → <b>原CST投循環</b>。<br><b>繳費：</b>收回車資單、開立繳費證明(可用儲值卡)、登帳管。'
         }
     };
 
+    let currentKey = null;
     function show(key) {
         const area = document.getElementById('display-area');
         const title = document.getElementById('case-title');
         const content = document.getElementById('case-content');
-        
+        if (currentKey === key) { area.style.display = 'none'; currentKey = null; return; }
         title.innerText = data[key].title;
         content.innerHTML = data[key].content;
         area.style.display = 'block';
+        currentKey = key;
         window.scrollTo({ top: area.offsetTop - 20, behavior: 'smooth' });
     }
 </script>
-
 </body>
 </html>
+
 
